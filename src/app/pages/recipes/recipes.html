@@ -1,0 +1,147 @@
+<section class="catalog">
+  <header class="catalog-head">
+    <div>
+      <h1>📖 Recetario de Cocina Inteligente</h1>
+      <p>Explora platillos de todo el mundo disponibles incluso sin conexión a internet (Modo Offline).</p>
+      <small class="update-badge">
+        ⏱️ Última sincronización: {{ service.ultimaActualizacion() }}
+      </small>
+      @if (service.fromCache()) {
+        <span class="cache-badge">📦 Modo Offline: mostrando recetas desde caché</span>
+      }
+    </div>
+
+    <div class="filters">
+      <select (change)="onCuisineChange($event)" aria-label="Filtrar por tipo de cocina">
+        <option value="all">🌍 Todas las cocinas</option>
+        @for (cuisine of service.cuisines(); track cuisine) {
+          <option [value]="cuisine">{{ cuisine }}</option>
+        }
+      </select>
+
+      <select (change)="onDifficultyChange($event)" aria-label="Filtrar por dificultad">
+        <option value="all">⚡ Todas las dificultades</option>
+        <option value="Easy">Fácil (Easy)</option>
+        <option value="Medium">Media (Medium)</option>
+      </select>
+
+      <button
+        type="button"
+        class="btn-fav-filter"
+        [class.active]="service.onlyFavorites()"
+        (click)="service.toggleOnlyFavorites()"
+      >
+        ❤️ Favoritos ({{ service.favoritesCount() }})
+      </button>
+
+      <button type="button" class="btn-reload" (click)="reload()">🔄 Actualizar</button>
+    </div>
+  </header>
+
+  @if (service.loading()) {
+    <div class="state loading-box">
+      <p>🍲 Preparando los ingredientes... Cargando recetas...</p>
+    </div>
+  }
+
+  @if (service.error()) {
+    <div class="state error">
+      <p>⚠️ {{ service.error() }}</p>
+      <button type="button" (click)="reload()">Reintentar conexión</button>
+    </div>
+  }
+
+  <div class="grid">
+    @for (recipe of service.recipes(); track recipe.id) {
+      <article class="card">
+        <div class="card-img-wrap">
+          <img [src]="recipe.image" [alt]="recipe.name" (error)="onImageError($event)" />
+          <button
+            type="button"
+            class="btn-fav-card"
+            (click)="service.toggleFavorite(recipe.id)"
+            [attr.aria-label]="service.isFavorite(recipe.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+            title="Guardar favorito en caché local"
+          >
+            {{ service.isFavorite(recipe.id) ? '❤️' : '🤍' }}
+          </button>
+          <span class="badge-diff">{{ recipe.difficulty }}</span>
+        </div>
+
+        <div class="card-body">
+          <span class="cuisine-tag">{{ recipe.cuisine }} • ⭐ {{ recipe.rating }}</span>
+          <h2>{{ recipe.name }}</h2>
+
+          <div class="meta-info">
+            <span>⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} min</span>
+            <span>🔥 {{ recipe.caloriesPerServing }} kcal</span>
+            <span>🍽️ {{ recipe.servings }} porc.</span>
+          </div>
+
+          <div class="card-actions">
+            <button type="button" class="btn-outline" (click)="openDetail(recipe)">
+              📋 Ver Receta
+            </button>
+            <button
+              type="button"
+              class="btn-push"
+              (click)="recommendRecipe(recipe)"
+              title="Enviar notificación push recomendando esta receta"
+            >
+              🔔 Recomendar
+            </button>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      @if (!service.loading() && !service.error()) {
+        <p class="state">No se encontraron recetas con esos filtros.</p>
+      }
+    }
+  </div>
+
+  @if (selectedRecipe(); as rec) {
+    <div class="modal-backdrop" (click)="closeDetail()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div>
+            <span class="cuisine-tag">{{ rec.cuisine }} • Dificultad: {{ rec.difficulty }}</span>
+            <h2>{{ rec.name }}</h2>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDetail()">✖ Cerrar</button>
+        </header>
+
+        <div class="modal-content">
+          <img [src]="rec.image" [alt]="rec.name" class="modal-img" (error)="onImageError($event)" />
+
+          <div class="modal-columns">
+            <div>
+              <h3>🛒 Ingredientes ({{ rec.ingredients.length }})</h3>
+              <ul>
+                @for (ing of rec.ingredients; track ing) {
+                  <li>{{ ing }}</li>
+                }
+              </ul>
+            </div>
+
+            <div>
+              <h3>👩‍🍳 Pasos de Preparación</h3>
+              <ol>
+                @for (step of rec.instructions; track step) {
+                  <li>{{ step }}</li>
+                }
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-push" (click)="recommendRecipe(rec)">
+            🔔 Enviar alerta Push de este platillo
+          </button>
+          <button type="button" class="btn-outline" (click)="closeDetail()">Listo</button>
+        </footer>
+      </div>
+    </div>
+  }
+</section>

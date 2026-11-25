@@ -1,0 +1,83 @@
+<header class="topbar">
+  <div class="brand">
+    <strong>🍳 Recetario PWA</strong>
+    <span
+      class="status-pill"
+      [class.online]="network.isOnline()"
+      [class.offline]="!network.isOnline()"
+    >
+      {{ network.isOnline() ? '🟢 En línea' : '🔴 Sin conexión' }}
+    </span>
+  </div>
+  <nav class="nav-links">
+    <a routerLink="/recipes" routerLinkActive="active">Recetas</a>
+    <a routerLink="/chefs" routerLinkActive="active">Chefs</a>
+  </nav>
+</header>
+
+@if (!network.isOnline()) {
+  <div class="offline-banner">
+    📡 <strong>Modo Offline activo:</strong> Estás navegando sin internet usando el Service Worker
+    y los datos guardados en caché.
+  </div>
+}
+
+<main class="shell">
+  <section class="push-bar">
+    @if (push.isSupported) {
+      <div class="push-controls">
+        <button type="button" class="btn-primary" (click)="toggleNotifications()">
+          {{ push.enabled() ? '🔕 Desactivar avisos' : '🔔 Activar avisos' }}
+        </button>
+
+        <button type="button" class="btn-secondary" (click)="testNotification()">
+          📣 Probar Notificación
+        </button>
+
+        <label class="server-picker">
+          <span>Servidor Push:</span>
+          <select [value]="push.serverUrl()" (change)="onServerChange($event)">
+            <option [value]="localUrl">Local (localhost:3000)</option>
+            <option [value]="cloudUrl">Nube (Render HTTPS)</option>
+          </select>
+        </label>
+      </div>
+
+      @if (push.lastResult()) {
+        <p class="push-status">{{ push.lastResult() }}</p>
+      }
+    } @else {
+      <p class="push-warning">
+        ℹ️ Las notificaciones Push y el Service Worker requieren ejecutar la versión compilada
+        (<code>npm run build</code>) en <code>localhost</code> o con <code>HTTPS</code>.
+      </p>
+    }
+
+    <div class="offline-controls">
+      <span class="sw-state">
+        @if (network.swActive()) {
+          ✅ Service Worker controlando la página (Recarga Offline lista)
+        } @else if (network.isDev) {
+          ⚠️ Estás en modo desarrollo (<code>ng serve</code>). Para recargar sin internet usa <code>dist/pwa-recetario/browser</code>.
+        } @else {
+          ⏳ Activando Service Worker... Recarga una vez con internet para habilitar la recarga offline.
+        }
+      </span>
+
+      <button
+        type="button"
+        class="btn-offline-sync"
+        [disabled]="!network.isOnline() || network.syncingOffline()"
+        (click)="network.syncForOffline()"
+      >
+        {{ network.syncingOffline() ? '⏳ Guardando...' : '💾 Guardar todo para Offline' }}
+      </button>
+    </div>
+
+    @if (network.offlineMessage()) {
+      <p class="offline-status">{{ network.offlineMessage() }}</p>
+    }
+  </section>
+
+  <router-outlet />
+</main>

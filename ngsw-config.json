@@ -1,0 +1,83 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "navigationUrls": [
+    "/",
+    "/recipes",
+    "/chefs",
+    "/**",
+    "!/**/*.*",
+    "!/**/*__*",
+    "!/**/*__*/**"
+  ],
+  "navigationRequestStrategy": "performance",
+  "dataGroups": [
+    {
+      "name": "api-recipes",
+      "urls": [
+        "https://dummyjson.com/recipes",
+        "https://dummyjson.com/recipes*",
+        "https://dummyjson.com/recipes/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "5s",
+        "maxAge": "7d",
+        "maxSize": 30
+      }
+    },
+    {
+      "name": "api-chefs",
+      "urls": [
+        "https://dummyjson.com/users",
+        "https://dummyjson.com/users*",
+        "https://dummyjson.com/users/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "5s",
+        "maxAge": "7d",
+        "maxSize": 20
+      }
+    },
+    {
+      "name": "imagenes-externas",
+      "urls": [
+        "https://cdn.dummyjson.com/**",
+        "https://dummyjson.com/icon/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxAge": "30d",
+        "maxSize": 100,
+        "cacheOpaqueResponses": true
+      }
+    }
+  ],
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.csr.html",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    }
+  ]
+}

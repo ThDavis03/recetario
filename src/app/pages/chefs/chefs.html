@@ -1,0 +1,56 @@
+<section class="catalog">
+  <header class="catalog-head">
+    <div>
+      <h1>👨‍🍳 Chefs Colaboradores</h1>
+      <p>Conoce a las personas que comparten sus platillos favoritos en la plataforma.</p>
+      @if (service.fromCache()) {
+        <span class="cache-badge">📦 Modo Offline: mostrando chefs desde caché</span>
+      }
+    </div>
+
+    <button type="button" class="btn-reload" (click)="reload()">🔄 Actualizar lista</button>
+  </header>
+
+  @if (service.loading()) {
+    <div class="state">
+      <p>🍳 Cargando equipo de cocina...</p>
+    </div>
+  }
+
+  @if (service.error()) {
+    <div class="state error">
+      <p>⚠️ {{ service.error() }}</p>
+      <button type="button" (click)="reload()">Reintentar</button>
+    </div>
+  }
+
+  <div class="grid">
+    @for (chef of service.chefs(); track chef.id) {
+      <article class="card">
+        <div class="chef-head">
+          <img
+            [src]="chef.image"
+            [alt]="chef.firstName + ' ' + chef.lastName"
+            (error)="onImageError($event)"
+          />
+          <div>
+            <h2>{{ chef.firstName }} {{ chef.lastName }}</h2>
+            <span class="role">{{ chef.company?.title || 'Chef Invitado' }}</span>
+          </div>
+        </div>
+
+        <p class="dept">🏢 {{ chef.company?.department || 'Cocina Internacional' }}</p>
+        <p class="email">📧 {{ chef.email }}</p>
+        <p class="username">@{{ chef.username }}</p>
+
+        <button type="button" class="btn-push" (click)="greetChef(chef)">
+          🔔 Enviar Saludo Push
+        </button>
+      </article>
+    } @empty {
+      @if (!service.loading() && !service.error()) {
+        <p class="state">No hay chefs disponibles en este momento.</p>
+      }
+    }
+  </div>
+</section>
